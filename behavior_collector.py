@@ -1,3 +1,5 @@
+# -*- coding: UTF-8 -*-
+
 __author__ = 'MeoWoodie'
 
 def CountStrategy(sensor_type_list):
