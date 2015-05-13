@@ -23,6 +23,9 @@ def CountStrategy(sensor_type_list):
     print 'The largest type is', type, '. the count of it is', max_count
     return _sensor_type
 
+def FirstStrategy(sensor_type_list):
+    return sensor_type_list[0]
+
 def BehaviorCollector(input_data):
     '''
     Behavior Collector
@@ -35,14 +38,14 @@ def BehaviorCollector(input_data):
     '''
     # Extract the information from senz list
     timestamp_list   = []
-    motion_type_list = []
-    poi_type_list    = []
-    sound_type_list  = []
+    motion_prob_list = []
+    poi_prob_list    = []
+    sound_prob_list  = []
     for senz_tuple in input_data:
         timestamp_list.append(senz_tuple['timestamp'])
-        motion_type_list.append(senz_tuple['motionType'])
-        sound_type_list.append(senz_tuple['soundType'])
-        poi_type_list.append(senz_tuple['poiType'])
+        motion_prob_list.append(senz_tuple['motionProb'])
+        poi_prob_list.append(senz_tuple['soundProb'])
+        sound_prob_list.append(senz_tuple['poiProb'])
 
     # Calculate the new senz's timestamp
     # It is the average of senzes' timestamp in list.
@@ -52,14 +55,14 @@ def BehaviorCollector(input_data):
     _timestamp /= len(timestamp_list)
 
     # Calculate every sensor's type.
-    _motion_type = CountStrategy(motion_type_list)
-    _poi_type    = CountStrategy(poi_type_list)
-    _sound_type  = CountStrategy(sound_type_list)
+    _motion_prob = FirstStrategy(motion_prob_list)
+    _poi_prob    = FirstStrategy(poi_prob_list)
+    _sound_prob  = FirstStrategy(sound_prob_list)
 
     result = {
-        'motionType': _motion_type,
-        'poiType': _poi_type,
-        'soundType': _sound_type,
+        'motionProb': _motion_prob,
+        'poiProb': _poi_prob,
+        'soundProb': _sound_prob,
         'timestamp': _timestamp
     }
     print 'The new senz tuple is'
