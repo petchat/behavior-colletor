@@ -44,8 +44,8 @@ def BehaviorCollector(input_data):
     for senz_tuple in input_data:
         timestamp_list.append(senz_tuple['timestamp'])
         motion_prob_list.append(senz_tuple['motionProb'])
-        poi_prob_list.append(senz_tuple['soundProb'])
-        sound_prob_list.append(senz_tuple['poiProbLv1'])
+        poi_prob_list.append(senz_tuple['poiProbLv1'])
+        sound_prob_list.append(senz_tuple['soundProb'])
 
     # Calculate the new senz's timestamp
     # It is the average of senzes' timestamp in list.
