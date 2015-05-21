@@ -39,12 +39,14 @@ def BehaviorCollector(input_data):
     # Extract the information from senz list
     timestamp_list   = []
     motion_prob_list = []
-    poi_prob_list    = []
+    poi_prob1_list   = []
+    poi_prob2_list   = []
     sound_prob_list  = []
     for senz_tuple in input_data:
         timestamp_list.append(senz_tuple['timestamp'])
         motion_prob_list.append(senz_tuple['motionProb'])
-        poi_prob_list.append(senz_tuple['poiProbLv1'])
+        poi_prob1_list.append(senz_tuple['poiProbLv1'])
+        poi_prob2_list.append(senz_tuple['poiProbLv2'])
         sound_prob_list.append(senz_tuple['soundProb'])
 
     # Calculate the new senz's timestamp
@@ -56,12 +58,14 @@ def BehaviorCollector(input_data):
 
     # Calculate every sensor's type.
     _motion_prob = FirstStrategy(motion_prob_list)
-    _poi_prob    = FirstStrategy(poi_prob_list)
+    _poi_prob1   = FirstStrategy(poi_prob1_list)
+    _poi_prob2   = FirstStrategy(poi_prob2_list)
     _sound_prob  = FirstStrategy(sound_prob_list)
 
     result = {
         'motionProb': _motion_prob,
-        'poiProbLv1': _poi_prob,
+        'poiProbLv1': _poi_prob1,
+        'poiProbLv2': _poi_prob2,
         'soundProb': _sound_prob,
         'timestamp': _timestamp
     }
