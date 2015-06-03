@@ -2,6 +2,10 @@
 
 __author__ = 'MeoWoodie'
 
+__all__ = 'BehaviorCollector'
+
+K_WEIGHT_DEFAULT = 0.5  # default value for _collect_probs() param k_weight
+
 # def CountStrategy(sensor_type_list):
 #     # Calculate the new senz's motion type
 #     # The new senz's motion type is much more than other type in senzes' motion type in list.
@@ -74,3 +78,66 @@ def BehaviorCollector(input_data):
 
     return result
 
+
+def _get_arithmetic_average(prob_list):
+    """Calculate arithmetic average of prob_list
+
+    Parameters
+    ----------
+    prob_list: array_like, shape(1, n)
+      elems are dict, with string keys and float values
+
+    Returns
+    -------
+    prob_result: dict
+      with string keys and float values
+    """
+    prob_result = {}
+    prob_length = len(prob_list)
+
+    for elem in prob_list:
+        for elem_key in elem:
+            if prob_result.has_key(elem_key):
+                prob_result[elem_key] += elem[elem_key]
+            else:
+                prob_result[elem_key] = elem[elem_key]
+
+    for prob_key in prob_result:
+        prob_result[prob_key] /= prob_length
+
+    return prob_result
+
+
+def _collect_probs(cur_prob_list, other_prob_list, k_weight):
+    """Collect probs in cur_prob_list, during
+
+    Parameters
+    ----------
+    cur_prob_list: array_like, shape(1, n)
+      elems are dict, with string keys and float values
+    other_prob_list: array_like, shape(1, m)
+      elems are dict, with string keys and float values
+    k_weight: float, limit [0, 1]
+      weight for cur_prob_list, represent cur_prob_list's weight in total
+      if k_weight out of [0, 1], will use a default value
+
+    Returns
+    -------
+    prob_result: dict
+      with string keys and float values
+    """
+    if k_weight < 0 or k_weight > 1:
+        k_weight = K_WEIGHT_DEFAULT
+
+    cur_prob_result = _get_arithmetic_average(cur_prob_list)
+    other_prob_result = _get_arithmetic_average(other_prob_list)
+
+    # process with k_weight
+    for key in cur_prob_result:
+        cur_prob_result[key] *= (2 * k_weight)
+    for key in other_prob_result:
+        other_prob_result[key] *= (2 * (1-k_weight))
+
+    prob_list = [cur_prob_result, other_prob_result]
+
+    return _get_arithmetic_average(prob_list)
