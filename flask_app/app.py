@@ -9,6 +9,8 @@ import json
 
 app = Flask(__name__)
 
+# TODO: roolbar & logentries
+
 @app.route('/behavior_collector/', methods=['POST'])
 def behaviorCollectorAPI():
     result = 'Your request is illegal'
@@ -21,7 +23,7 @@ def behaviorCollectorAPI():
         print 'The senz list is\n', senz_list
         senz_tuple  = BehaviorCollector(senz_list)
         senz_tuple[scale_type] = int(scale_value)
-        result = json.dumps({ 'result': senz_tuple })
+        result = json.dumps({'result': senz_tuple })
     return result
 
 if __name__ == '__main__':
