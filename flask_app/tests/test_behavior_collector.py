@@ -6,6 +6,7 @@ from unittest import TestCase
 import numpy as np
 
 from flask_app.behavior_collector import _collect_probs, _get_arithmetic_average, _check_blank_condition
+from flask_app.behavior_collector import refine_senz_prob_list
 
 
 class MyTestCase(TestCase):
@@ -111,3 +112,39 @@ class TestInnerMethod(MyTestCase):
         # case 7
         my_list = [1, 2, 4, 5, 6, 7]
         self.assertEqual(True, _check_blank_condition(3, 8, my_list))
+
+
+class TestInterfaceMethod(MyTestCase):
+
+    def test_refine_senz_prob_list(self):
+        # case 1
+        senz_prob_list = [
+            {
+                'motionProb': {'A': 0.7, 'B': 0.3},
+                'timestamp': 21921921213,
+                'tenMinScale': 1,
+                'senzId': 11
+            },
+            {
+                'motionProb': {'A': 0.3, 'C': 0.7},
+                'timestamp': 11223333,
+                'tenMinScale': 1,
+                'senzId': 12
+            },
+            {
+                'motionProb': {'B': 0.7, 'C': 0.3},
+                'timestamp': 333222,
+                'tenMinScale': 2,
+                'senzId': 21
+            },
+            {
+                'motionProb': {'A': 0.7, 'C': 0.3},
+                'timestamp': 992222,
+                'tenMinScale': 4,
+                'senzId': 41
+            },
+        ]
+        result = refine_senz_prob_list('tenMinScale', 1, 4, senz_prob_list)
+        self.assertEqual(4, len(result))
+        self.assertEqual([11, 12], result[0]['senzId'])
+        self.assertEqual([], result[2]['senzId'])

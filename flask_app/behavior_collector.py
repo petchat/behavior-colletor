@@ -202,6 +202,9 @@ def refine_senz_prob_list(scale_type, start_scale_value, end_scale_value, senz_p
       m <= n
     """
     # TODO: start > end 的情况　
+    start_scale_value = int(start_scale_value)
+    end_scale_value = int(end_scale_value)
+
     max_blank_senz_prob = 2
     refined_senz_prob_list = []
 
@@ -281,7 +284,6 @@ def refine_senz_prob_list(scale_type, start_scale_value, end_scale_value, senz_p
     if end_scale_value - combined_prob_list[-1][scale_type] == 1:
         pass
         #refined_senz_prob_list.append()
-
 
     return refined_senz_prob_list
 
