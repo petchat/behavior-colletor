@@ -116,7 +116,7 @@ class TestInnerMethod(MyTestCase):
 
 class TestInterfaceMethod(MyTestCase):
 
-    def test_refine_senz_prob_list(self):
+    def test_valid_refine_senz_prob_list(self):
         # case 1
         senz_prob_list = [
             {
@@ -181,3 +181,164 @@ class TestInterfaceMethod(MyTestCase):
         self.assertEqual(4, len(result))
         self.assertEqual([11, 12], result[0]['senzId'])
         self.assertEqual([], result[2]['senzId'])
+
+        # case 3
+        senz_prob_list = [
+            {
+                'motionProb': {'A': 0.7, 'B': 0.3},
+                'timestamp': 21921921213,
+                'tenMinScale': 2,
+                'senzId': 11
+            },
+            {
+                'motionProb': {'A': 0.3, 'C': 0.7},
+                'timestamp': 11223333,
+                'tenMinScale': 2,
+                'senzId': 12
+            },
+            {
+                'motionProb': {'B': 0.7, 'C': 0.3},
+                'timestamp': 333222,
+                'tenMinScale': 3,
+                'senzId': 21
+            },
+            {
+                'motionProb': {'A': 0.7, 'C': 0.3},
+                'timestamp': 992222,
+                'tenMinScale': 4,
+                'senzId': 41
+            },
+        ]
+        result = refine_senz_prob_list('tenMinScale', 1, 4, senz_prob_list)
+        self.assertEqual(4, len(result))
+        self.assertEqual(1, result[0]['tenMinScale'])
+        self.assertEqual([], result[0]['senzId'])
+
+        # case 4
+        senz_prob_list = [
+            {
+                'motionProb': {'A': 0.7, 'B': 0.3},
+                'timestamp': 21921921213,
+                'tenMinScale': 1,
+                'senzId': 11
+            },
+            {
+                'motionProb': {'A': 0.3, 'C': 0.7},
+                'timestamp': 11223333,
+                'tenMinScale': 1,
+                'senzId': 12
+            },
+            {
+                'motionProb': {'B': 0.7, 'C': 0.3},
+                'timestamp': 333222,
+                'tenMinScale': 2,
+                'senzId': 21
+            },
+            {
+                'motionProb': {'A': 0.7, 'C': 0.3},
+                'timestamp': 992222,
+                'tenMinScale': 3,
+                'senzId': 41
+            },
+        ]
+        result = refine_senz_prob_list('tenMinScale', 1, 4, senz_prob_list)
+        self.assertEqual(4, len(result))
+        self.assertEqual(4, result[-1]['tenMinScale'])
+        self.assertEqual([], result[-1]['senzId'])
+
+        # case 5
+        scale_type = 'perHourScale'
+        senz_prob_list = [
+            {
+                'motionProb': {'A': 0.7, 'B': 0.3},
+                'timestamp': 21921921213,
+                'perHourScale': 23,
+                'senzId': 11
+            },
+            {
+                'motionProb': {'A': 0.3, 'C': 0.7},
+                'timestamp': 11223333,
+                'perHourScale': 23,
+                'senzId': 12
+            },
+            {
+                'motionProb': {'B': 0.7, 'C': 0.3},
+                'timestamp': 333222,
+                'perHourScale': 0,
+                'senzId': 21
+            },
+            {
+                'motionProb': {'A': 0.7, 'C': 0.3},
+                'timestamp': 992222,
+                'perHourScale': 2,
+                'senzId': 41
+            },
+        ]
+        result = refine_senz_prob_list(scale_type, 22, 2, senz_prob_list)
+        self.assertEqual(5, len(result))
+        self.assertEqual([], result[0]['senzId'])
+        self.assertEqual(22, result[0]['perHourScale'])
+        self.assertEqual([11, 12], result[1]['senzId'])
+        self.assertEqual([], result[3]['senzId'])
+
+    def test_unvalid_refine_senz_prob_list(self):
+        # case 1
+        senz_prob_list = [
+            {
+                'motionProb': {'A': 0.7, 'B': 0.3},
+                'timestamp': 21921921213,
+                'tenMinScale': 2,
+                'senzId': 11
+            },
+            {
+                'motionProb': {'A': 0.3, 'C': 0.7},
+                'timestamp': 11223333,
+                'tenMinScale': 2,
+                'senzId': 12
+            },
+            {
+                'motionProb': {'B': 0.7, 'C': 0.3},
+                'timestamp': 333222,
+                'tenMinScale': 3,
+                'senzId': 21
+            },
+            {
+                'motionProb': {'A': 0.7, 'C': 0.3},
+                'timestamp': 992222,
+                'tenMinScale': 4,
+                'senzId': 41
+            },
+        ]
+        result = refine_senz_prob_list('tenMinScale', 0, 4, senz_prob_list)
+        self.assertEqual([], result)
+
+        # case 2
+        scale_type = 'perHourScale'
+        senz_prob_list = [
+            {
+                'motionProb': {'A': 0.7, 'B': 0.3},
+                'timestamp': 21921921213,
+                'perHourScale': 23,
+                'senzId': 11
+            },
+            {
+                'motionProb': {'A': 0.3, 'C': 0.7},
+                'timestamp': 11223333,
+                'perHourScale': 23,
+                'senzId': 12
+            },
+            {
+                'motionProb': {'B': 0.7, 'C': 0.3},
+                'timestamp': 333222,
+                'perHourScale': 0,
+                'senzId': 21
+            },
+            {
+                'motionProb': {'A': 0.7, 'C': 0.3},
+                'timestamp': 992222,
+                'perHourScale': 2,
+                'senzId': 41
+            },
+        ]
+        result = refine_senz_prob_list(scale_type, 21, 2, senz_prob_list)
+        self.assertEqual([], result)

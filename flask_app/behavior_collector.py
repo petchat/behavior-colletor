@@ -206,7 +206,6 @@ def refine_senz_prob_list(scale_type, start_scale_value, end_scale_value, senz_p
     refined_senz_prob_list: list, shape(1, m)
       m <= n
     """
-    # TODO: start > end 的情况, 把跨天后的scale_value做一下加法，出去之前做剑法包装
     start_scale_value = int(start_scale_value)
     end_scale_value = int(end_scale_value)
 
@@ -288,6 +287,7 @@ def refine_senz_prob_list(scale_type, start_scale_value, end_scale_value, senz_p
             })
 
     if end_scale_value > MAX_SCALE_VALUE[scale_type]:
+        end_scale_value = shadow_end_scale_values
         tmp_refiend_senz_prob_list = list(refined_senz_prob_list)
         refined_senz_prob_list = []
         for refined_senz_prob in tmp_refiend_senz_prob_list:
@@ -295,13 +295,21 @@ def refine_senz_prob_list(scale_type, start_scale_value, end_scale_value, senz_p
                 refined_senz_prob[scale_type] -= (MAX_SCALE_VALUE[scale_type] + 1)
             refined_senz_prob_list.append(refined_senz_prob)
 
-    # TODO: 开始、结尾处的缺失
+    # 补全开始结尾处的空白
     if combined_prob_list[0][scale_type] - start_scale_value == 1:
-        pass
-        #refined_senz_prob_list.index(0, _collect_probs())
+        refined_senz_prob_list.insert(0, {
+            'timestamp': combined_prob_list[0]['timestamp'],
+            'motionProb': combined_prob_list[0]['motionProb'],
+            scale_type: start_scale_value,
+            'senzId': []
+        })
     if end_scale_value - combined_prob_list[-1][scale_type] == 1:
-        pass
-        #refined_senz_prob_list.append()
+        refined_senz_prob_list.append({
+            'timestamp': combined_prob_list[-1]['timestamp'],
+            'motionProb': combined_prob_list[-1]['motionProb'],
+            scale_type: end_scale_value,
+            'senzId': []
+        })
 
     return refined_senz_prob_list
 
