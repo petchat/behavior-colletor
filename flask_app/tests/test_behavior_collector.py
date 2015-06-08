@@ -148,3 +148,36 @@ class TestInterfaceMethod(MyTestCase):
         self.assertEqual(4, len(result))
         self.assertEqual([11, 12], result[0]['senzId'])
         self.assertEqual([], result[2]['senzId'])
+
+        # case 2
+        scale_type = 'perHourScale'
+        senz_prob_list = [
+            {
+                'motionProb': {'A': 0.7, 'B': 0.3},
+                'timestamp': 21921921213,
+                'perHourScale': 23,
+                'senzId': 11
+            },
+            {
+                'motionProb': {'A': 0.3, 'C': 0.7},
+                'timestamp': 11223333,
+                'perHourScale': 23,
+                'senzId': 12
+            },
+            {
+                'motionProb': {'B': 0.7, 'C': 0.3},
+                'timestamp': 333222,
+                'perHourScale': 0,
+                'senzId': 21
+            },
+            {
+                'motionProb': {'A': 0.7, 'C': 0.3},
+                'timestamp': 992222,
+                'perHourScale': 2,
+                'senzId': 41
+            },
+        ]
+        result = refine_senz_prob_list(scale_type, 23, 2, senz_prob_list)
+        self.assertEqual(4, len(result))
+        self.assertEqual([11, 12], result[0]['senzId'])
+        self.assertEqual([], result[2]['senzId'])

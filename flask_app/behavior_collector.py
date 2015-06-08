@@ -1,9 +1,14 @@
 # -*- coding: UTF-8 -*-
 
-__author__ = 'MeoWoodie'
+__author__ = ['MeoWoodie', 'jiaying.lu']
 
-__all__ = 'BehaviorCollector'
+__all__ = ['BehaviorCollector', 'refine_senz_prob_list']
 
+
+# configs
+MAX_SCALE_VALUE = {'tenMinScale': 143,
+                   'halfHourScale': 47,
+                   'perHourScale': 23}
 K_WEIGHT_DEFAULT = 0.5  # default value for _collect_probs() param k_weight
 
 # def CountStrategy(sensor_type_list):
@@ -108,7 +113,7 @@ def _get_arithmetic_average(prob_list):
     return prob_result
 
 
-def _collect_probs(cur_prob_list, other_prob_list, k_weight=0.5):
+def _collect_probs(cur_prob_list, other_prob_list, k_weight=K_WEIGHT_DEFAULT):
     """Collect probs in cur_prob_list, during
 
     Parameters
@@ -201,7 +206,7 @@ def refine_senz_prob_list(scale_type, start_scale_value, end_scale_value, senz_p
     refined_senz_prob_list: list, shape(1, m)
       m <= n
     """
-    # TODO: start > end 的情况　
+    # TODO: start > end 的情况, 把跨天后的scale_value做一下加法，出去之前做剑法包装
     start_scale_value = int(start_scale_value)
     end_scale_value = int(end_scale_value)
 
@@ -216,11 +221,15 @@ def refine_senz_prob_list(scale_type, start_scale_value, end_scale_value, senz_p
     for elem in senz_prob_list:
         if start_scale_value < end_scale_value and start_scale_value <= elem[scale_type] <= end_scale_value:
             checked_senz_prob_list.append(elem)
-        '''
-        if start_scale_value > end_scale_value and (elem[scale_type] <= start_scale_value
-                                                    or elem[scale_type] >= end_scale_value):
+        if start_scale_value > end_scale_value:
+            if elem[scale_type] <= end_scale_value:
+                elem[scale_type] += (MAX_SCALE_VALUE[scale_type] + 1)
             checked_senz_prob_list.append(elem)
-        '''
+
+    if start_scale_value > end_scale_value:
+        shadow_end_scale_values = end_scale_value
+        end_scale_value += MAX_SCALE_VALUE[scale_type]
+
     senz_prob_list = checked_senz_prob_list
 
     # Step 1: process scale
@@ -237,7 +246,7 @@ def refine_senz_prob_list(scale_type, start_scale_value, end_scale_value, senz_p
         scaled_senz_prob_list.append(scaled_senz_prob_dict[sorted_key])
 
     # Step 2: check blank condition
-    if not _check_blank_condition(start_scale_value, end_scale_value, scaled_senz_prob_dict.keys(), max_blank_senz_prob):
+    if not _check_blank_condition(start_scale_value, end_scale_value, sorted(scaled_senz_prob_dict), max_blank_senz_prob):
         return []
 
     # Step 3: calculate per scale combined prob
@@ -278,6 +287,15 @@ def refine_senz_prob_list(scale_type, start_scale_value, end_scale_value, senz_p
                 'senzId': []
             })
 
+    if end_scale_value > MAX_SCALE_VALUE[scale_type]:
+        tmp_refiend_senz_prob_list = list(refined_senz_prob_list)
+        refined_senz_prob_list = []
+        for refined_senz_prob in tmp_refiend_senz_prob_list:
+            if refined_senz_prob[scale_type] > MAX_SCALE_VALUE[scale_type]:
+                refined_senz_prob[scale_type] -= (MAX_SCALE_VALUE[scale_type] + 1)
+            refined_senz_prob_list.append(refined_senz_prob)
+
+    # TODO: 开始、结尾处的缺失
     if combined_prob_list[0][scale_type] - start_scale_value == 1:
         pass
         #refined_senz_prob_list.index(0, _collect_probs())
@@ -290,31 +308,31 @@ def refine_senz_prob_list(scale_type, start_scale_value, end_scale_value, senz_p
 
 
 if __name__ == '__main__':
-    scale_type = 'tenMinScale'
+    scale_type = 'perHourScale'
     senz_prob_list = [
         {
             'motionProb': {'A': 0.7, 'B': 0.3},
             'timestamp': 21921921213,
-            'tenMinScale': 1,
+            'perHourScale': 23,
             'senzId': 11
         },
         {
             'motionProb': {'A': 0.3, 'C': 0.7},
             'timestamp': 11223333,
-            'tenMinScale': 1,
+            'perHourScale': 23,
             'senzId': 12
         },
         {
             'motionProb': {'B': 0.7, 'C': 0.3},
             'timestamp': 333222,
-            'tenMinScale': 2,
+            'perHourScale': 1,
             'senzId': 21
         },
         {
             'motionProb': {'A': 0.7, 'C': 0.3},
             'timestamp': 992222,
-            'tenMinScale': 4,
+            'perHourScale': 2,
             'senzId': 41
         },
     ]
-    print(refine_senz_prob_list(scale_type, 1, 4, senz_prob_list))
+    print(refine_senz_prob_list(scale_type, 23, 2, senz_prob_list))
