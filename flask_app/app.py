@@ -7,9 +7,10 @@ from behavior_collector import refine_senz_prob_list
 import json
 import os
 
+from config import *
 from logger import logger
-import rollbar
-import rollbar.contrib.flask
+import bugsnag
+from bugsnag.flask import handle_exceptions
 
 app = Flask(__name__)
 
@@ -17,15 +18,27 @@ logger.info('[rawsenz.refinedsenzes] start')
 
 
 @app.before_first_request
-def init_rollbar():
-    """init rollbar module"""
-    rollbar.init('ec8dca105f8948ed92490a57cf846923',
-                 'petchat-flask',
-                 root=os.path.dirname(os.path.realpath(__file__)),
-                 allow_logging_basic_config=False)
+def init_before_first_request():
+    import datetime
 
-    got_request_exception.connect(rollbar.contrib.flask.report_exception, app)
+    init_tag = "[Initiation of Service Process]\n"
 
+    # Configure Bugsnag
+    bugsnag.configure(
+        api_key=BUGSNAG_TOKEN,
+        project_root=os.path.dirname(os.path.realpath(__file__)),
+    )
+    # Attach Bugsnag to Flask's exception handler
+    handle_exceptions(app)
+
+    log_init_time = "Initiation START at: \t%s\n" % datetime.datetime.now()
+    log_app_env = "Environment Variable: \t%s\n" % APP_ENV
+    log_bugsnag_token = "Bugsnag Service TOKEN: \t%s\n" % BUGSNAG_TOKEN
+    log_logentries_token = "Logentries Service TOKEN: \t%s\n" % LOGENTRIES_TOKEN
+    logger.info(init_tag + log_init_time)
+    logger.info(init_tag + log_app_env)
+    logger.info(init_tag + log_bugsnag_token)
+    logger.info(init_tag + log_logentries_token)
 
 @app.route('/behavior_collector/', methods=['POST'])
 def behaviorCollectorAPI():
