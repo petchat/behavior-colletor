@@ -1,1 +1,5 @@
-
+flask
+blinker
+logentries
+bugsnag
+numpy
