@@ -54,14 +54,14 @@ def behaviorCollectorAPI():
 
     # params key checking
     try:
-        scale_type  = incoming_data['scale_type']
-        senz_list   = incoming_data['senz_list']
-        start_scale_value = incoming_data['start_scale_value']
-        end_scale_value = incoming_data['end_scale_value']
+        scale_type  = incoming_data['scaleType']
+        senz_list   = incoming_data['senzList']
+        start_scale_value = incoming_data['startScaleValue']
+        end_scale_value = incoming_data['endScaleValue']
     except KeyError, err_msg:
         logger.error('[KeyError] err_msg: %s, params=%s' % (err_msg, incoming_data))
         result['message'] = "Params Contents Error: Can't find keys " \
-                            "['scale_type', 'senz_list', 'start_scale_value', 'end_scale_value']"
+                            "['scaleType', 'senzList', 'startScaleValue', 'endScaleValue']"
         return json.dumps(result)
 
     try:
