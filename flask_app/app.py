@@ -8,13 +8,27 @@ import json
 import os
 
 from config import *
-from logger import logger
+import logging
+from logentries import LogentriesHandler
 import bugsnag
 from bugsnag.flask import handle_exceptions
 
+# Configure Logentries
+logger = logging.getLogger('logentries')
+logger.setLevel(logging.INFO)
+logentries_handler = LogentriesHandler(LOGENTRIES_TOKEN)
+logger.addHandler(logentries_handler)
+
+# Configure Bugsnag
+bugsnag.configure(
+    api_key=BUGSNAG_TOKEN,
+    project_root=os.path.dirname(os.path.realpath(__file__)),
+)
+
 app = Flask(__name__)
 
-logger.info('[rawsenz.refinedsenzes] start')
+# Attach Bugsnag to Flask's exception handler
+handle_exceptions(app)
 
 
 @app.before_first_request
@@ -22,14 +36,6 @@ def init_before_first_request():
     import datetime
 
     init_tag = "[Initiation of Service Process]\n"
-
-    # Configure Bugsnag
-    bugsnag.configure(
-        api_key=BUGSNAG_TOKEN,
-        project_root=os.path.dirname(os.path.realpath(__file__)),
-    )
-    # Attach Bugsnag to Flask's exception handler
-    handle_exceptions(app)
 
     log_init_time = "Initiation START at: \t%s\n" % datetime.datetime.now()
     log_app_env = "Environment Variable: \t%s\n" % APP_ENV
