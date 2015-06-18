@@ -20,13 +20,13 @@ class TestBehaviorCollectorAPI(TestCase):
         app.config["TESTING"] = False
 
     def test_empty_params(self):
-        rv = self.app.post("/behavior_collector/", data="")
+        rv = self.app.post("/", data="")
         self.assertEqual(200, rv.status_code)
         result = json.loads(rv.data)
         self.assertEqual(1, result["code"])
 
     def test_unvalid_params(self):
-        rv = self.app.post("/behavior_collector/", data="OhMyParams")
+        rv = self.app.post("/", data="OhMyParams")
         self.assertEqual(200, rv.status_code)
         result = json.loads(rv.data)
         self.assertEqual(1, result["code"])
@@ -66,7 +66,7 @@ class TestBehaviorCollectorAPI(TestCase):
             "endScaleValue": 2,
             "senzList": senz_prob_list,
         }
-        rv = self.app.post("/behavior_collector/", data=json.dumps(data))
+        rv = self.app.post("/", data=json.dumps(data))
         self.assertEqual(200, rv.status_code)
         result = json.loads(rv.data)
         self.assertEqual(0, result["code"])
@@ -109,10 +109,10 @@ class TestBehaviorCollectorAPI(TestCase):
             "endScaleValue": 2,
             "senzList": senz_prob_list,
         }
-        rv = self.app.post("/behavior_collector/", data=json.dumps(data))
+        rv = self.app.post("/", data=json.dumps(data))
         self.assertEqual(200, rv.status_code)
         result = json.loads(rv.data)
         self.assertEqual(0, result["code"])
-        print(result['result'])
+        #print(result['result'])
         self.assertEqual(True, result['result'][0].has_key('locationProb'))
         self.assertEqual(True, result['result'][0].has_key('motionProb'))
