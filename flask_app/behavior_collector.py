@@ -251,27 +251,39 @@ def refine_senz_prob_list(scale_type, start_scale_value, end_scale_value, senz_p
     # Step 3: calculate per scale combined prob
     combined_prob_list = []
 
-    total_prob_list = []
+    total_prob_dict = {}
+    total_prob_keys = [key for key in scaled_senz_prob_list[0][0].iterkeys() if key not in ['timestamp', 'senzId', 'tenMinScale', 'halfHourScale', 'perHourScale']]
+    for key in total_prob_keys:
+        total_prob_dict[key] = []
     for per_scaled_list in scaled_senz_prob_list:
         for per_dict in per_scaled_list:
-            total_prob_list.append(per_dict['motionProb'])
+            for key in total_prob_keys:
+                total_prob_dict[key].append(per_dict[key])
 
     for per_scaled_list in scaled_senz_prob_list:
-        cur_prob_list = []
+        cur_prob_dict = {}
+        for key in total_prob_keys:
+            cur_prob_dict[key] = []
         cur_average_timestamp = 0
         cur_scale_value = per_scaled_list[0][scale_type]
         cur_senz_ids = []
         for per_dict in per_scaled_list:
             cur_average_timestamp += per_dict['timestamp']
-            cur_prob_list.append(per_dict['motionProb'])
             cur_senz_ids.append(per_dict['senzId'])
+            for key in total_prob_keys:
+                cur_prob_dict[key].append(per_dict[key])
         cur_average_timestamp = int(cur_average_timestamp / len(per_scaled_list))
-        combined_prob_list.append({
+        combined_prob_list_elem = {
             'timestamp': cur_average_timestamp,
-            'motionProb': _collect_probs(cur_prob_list, total_prob_list, k_weight=0.75),
             scale_type: cur_scale_value,
             'senzId': cur_senz_ids
-        })
+        }
+        for key in total_prob_keys:
+            # print('cur_prob_dict[%s]:%s' % (key, cur_prob_dict[key]))
+            # print('total_prob_dict[%s]:%s' % (key, total_prob_dict[key]))
+            combined_prob_list_elem[key] = _collect_probs(cur_prob_dict[key], total_prob_dict[key], k_weight=0.75)
+
+        combined_prob_list.append(combined_prob_list_elem)
 
     # Step 4: fill blank scales
     for index in xrange(len(combined_prob_list)):
@@ -279,12 +291,16 @@ def refine_senz_prob_list(scale_type, start_scale_value, end_scale_value, senz_p
         if index == len(combined_prob_list) - 1:
             break
         if combined_prob_list[index+1][scale_type] - combined_prob_list[index][scale_type] == max_blank_senz_prob:
-            refined_senz_prob_list.append({
+            refined_senz_prob_list_elem = {
                 'timestamp': (combined_prob_list[index]['timestamp'] + combined_prob_list[index+1]['timestamp']) / 2,
-                'motionProb': _collect_probs(combined_prob_list[index]['motionProb'], combined_prob_list[index+1]['motionProb'], k_weight=0.5),
+                #'motionProb': _collect_probs(combined_prob_list[index]['motionProb'], combined_prob_list[index+1]['motionProb'], k_weight=0.5),
                 scale_type: combined_prob_list[index][scale_type] + 1,
                 'senzId': []
-            })
+            }
+            for key in total_prob_keys:
+                refined_senz_prob_list_elem[key] = _collect_probs(combined_prob_list[index][key], combined_prob_list[index+1][key], k_weight=0.5)
+
+            refined_senz_prob_list.append(refined_senz_prob_list_elem)
 
     if end_scale_value > MAX_SCALE_VALUE[scale_type]:
         end_scale_value = shadow_end_scale_values
@@ -297,50 +313,60 @@ def refine_senz_prob_list(scale_type, start_scale_value, end_scale_value, senz_p
 
     # 补全开始结尾处的空白
     if combined_prob_list[0][scale_type] - start_scale_value == 1:
-        refined_senz_prob_list.insert(0, {
+        refined_senz_prob_list_elem = {
             'timestamp': combined_prob_list[0]['timestamp'],
-            'motionProb': combined_prob_list[0]['motionProb'],
             scale_type: start_scale_value,
             'senzId': []
-        })
+        }
+        for key in total_prob_keys:
+            refined_senz_prob_list_elem[key] = combined_prob_list[0][key]
+        refined_senz_prob_list.insert(0, refined_senz_prob_list_elem)
+
     if end_scale_value - combined_prob_list[-1][scale_type] == 1:
-        refined_senz_prob_list.append({
+        refined_senz_prob_list_elem = {
             'timestamp': combined_prob_list[-1]['timestamp'],
-            'motionProb': combined_prob_list[-1]['motionProb'],
             scale_type: end_scale_value,
             'senzId': []
-        })
+        }
+        for key in total_prob_keys:
+            refined_senz_prob_list_elem[key] = combined_prob_list[-1][key]
+        refined_senz_prob_list.append(refined_senz_prob_list_elem)
 
     return refined_senz_prob_list
 
 
 
 if __name__ == '__main__':
-    scale_type = 'perHourScale'
+    # case 2
+    scale_type = "perHourScale"
     senz_prob_list = [
         {
-            'motionProb': {'A': 0.7, 'B': 0.3},
-            'timestamp': 21921921213,
-            'perHourScale': 23,
-            'senzId': 11
+            "motionProb": {"A": 0.7, "B": 0.3},
+            "locationProb": {"A": 0.7, "B": 0.3},
+            "timestamp": 21921921213,
+            "perHourScale": 23,
+            "senzId": 11
         },
         {
-            'motionProb': {'A': 0.3, 'C': 0.7},
-            'timestamp': 11223333,
-            'perHourScale': 23,
-            'senzId': 12
+            "motionProb": {"A": 0.3, "C": 0.7},
+            "locationProb": {"A": 0.3, "C": 0.7},
+            "timestamp": 11223333,
+            "perHourScale": 23,
+            "senzId": 12
         },
         {
-            'motionProb': {'B': 0.7, 'C': 0.3},
-            'timestamp': 333222,
-            'perHourScale': 1,
-            'senzId': 21
+            "motionProb": {"B": 0.7, "C": 0.3},
+            "locationProb": {"B": 0.7, "C": 0.3},
+            "timestamp": 333222,
+            "perHourScale": 0,
+            "senzId": 21
         },
         {
-            'motionProb': {'A': 0.7, 'C': 0.3},
-            'timestamp': 992222,
-            'perHourScale': 2,
-            'senzId': 41
+            "motionProb": {"A": 0.7, "C": 0.3},
+            "locationProb": {"A": 0.7, "C": 0.3},
+            "timestamp": 992222,
+            "perHourScale": 2,
+            "senzId": 41
         },
     ]
     print(refine_senz_prob_list(scale_type, 23, 2, senz_prob_list))
