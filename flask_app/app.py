@@ -46,7 +46,7 @@ def init_before_first_request():
     logger.info(init_tag + log_bugsnag_token)
     logger.info(init_tag + log_logentries_token)
 
-@app.route('/behavior_collector/', methods=['POST'])
+@app.route('/', methods=['POST'])
 def behaviorCollectorAPI():
     result = {'code': 1, 'message': ''}
 
