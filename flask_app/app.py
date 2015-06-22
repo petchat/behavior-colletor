@@ -48,13 +48,19 @@ def init_before_first_request():
 
 @app.route('/', methods=['POST'])
 def behaviorCollectorAPI():
+    if request.headers.has_key('X-Request-Id'):
+        x_request_id = request.headers['X-Request-Id']
+    else:
+        x_request_id = ''
+
+    logger.info('[behaviorCollector API] enter API')
     result = {'code': 1, 'message': ''}
 
     # params JSON validate
     try:
         incoming_data = json.loads(request.data)
     except ValueError, err_msg:
-        logger.error('[ValueError] err_msg: %s, params=%s' % (err_msg, request.data))
+        logger.error('%s, [ValueError] err_msg: %s, params=%s' % (x_request_id, err_msg, request.data))
         result['message'] = 'Unvalid params: NOT a JSON Object'
         return json.dumps(result)
 
@@ -65,7 +71,7 @@ def behaviorCollectorAPI():
         start_scale_value = incoming_data['startScaleValue']
         end_scale_value = incoming_data['endScaleValue']
     except KeyError, err_msg:
-        logger.error('[KeyError] err_msg: %s, params=%s' % (err_msg, incoming_data))
+        logger.error('%s, [KeyError] err_msg: %s, params=%s' % (x_request_id, err_msg, incoming_data))
         result['message'] = "Params Contents Error: Can't find keys " \
                             "['scaleType', 'senzList', 'startScaleValue', 'endScaleValue']"
         return json.dumps(result)
@@ -74,9 +80,10 @@ def behaviorCollectorAPI():
         result['result'] = refine_senz_prob_list(scale_type, start_scale_value, end_scale_value, senz_list)
         result['code'] = 0
         result['message'] = 'success'
+        logger.info('%s, [API] success!' % (x_request_id))
         return json.dumps(result)
     except Exception, e:
-        logger.error('[Exception] generate result error: %s' % (str(e)))
+        logger.error('%s, [Exception] generate result error: %s' % (x_request_id, str(e)))
         result['code'] = 1
         result['message'] = '500 Internal Error'
         return json.dumps(result)
