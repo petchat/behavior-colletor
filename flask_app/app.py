@@ -60,7 +60,7 @@ def behaviorCollectorAPI():
     try:
         incoming_data = json.loads(request.data)
     except ValueError, err_msg:
-        logger.error('%s, [ValueError] err_msg: %s, params=%s' % (x_request_id, err_msg, request.data))
+        logger.error('<%s>, [ValueError] err_msg: %s, params=%s' % (x_request_id, err_msg, request.data))
         result['message'] = 'Unvalid params: NOT a JSON Object'
         return json.dumps(result)
 
@@ -71,7 +71,7 @@ def behaviorCollectorAPI():
         start_scale_value = incoming_data['startScaleValue']
         end_scale_value = incoming_data['endScaleValue']
     except KeyError, err_msg:
-        logger.error('%s, [KeyError] err_msg: %s, params=%s' % (x_request_id, err_msg, incoming_data))
+        logger.error('<%s>, [KeyError] err_msg: %s, params=%s' % (x_request_id, err_msg, incoming_data))
         result['message'] = "Params Contents Error: Can't find keys " \
                             "['scaleType', 'senzList', 'startScaleValue', 'endScaleValue']"
         return json.dumps(result)
@@ -83,7 +83,7 @@ def behaviorCollectorAPI():
         logger.info('%s, [API] success!' % (x_request_id))
         return json.dumps(result)
     except Exception, e:
-        logger.error('%s, [Exception] generate result error: %s' % (x_request_id, str(e)))
+        logger.error('<%s>, [Exception] generate result error: %s' % (x_request_id, str(e)))
         result['code'] = 1
         result['message'] = '500 Internal Error'
         return json.dumps(result)
