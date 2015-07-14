@@ -4,12 +4,17 @@ __author__ = ['MeoWoodie', 'jiaying.lu']
 
 __all__ = ['BehaviorCollector', 'refine_senz_prob_list']
 
+import logging
+from exceptions import BlankConditionException
+
+logger = logging.getLogger('logentries')
 
 # configs
 MAX_SCALE_VALUE = {'tenMinScale': 143,
                    'halfHourScale': 47,
                    'perHourScale': 23}
 K_WEIGHT_DEFAULT = 0.5  # default value for _collect_probs() param k_weight
+
 
 # def CountStrategy(sensor_type_list):
 #     # Calculate the new senz's motion type
@@ -35,6 +40,7 @@ K_WEIGHT_DEFAULT = 0.5  # default value for _collect_probs() param k_weight
 def FirstStrategy(sensor_type_list):
     return sensor_type_list[0]
 
+
 def BehaviorCollector(input_data):
     '''
     Behavior Collector
@@ -46,11 +52,11 @@ def BehaviorCollector(input_data):
     :return: A general senz tuple, with motion type, sound type and poi type.
     '''
     # Extract the information from senz list
-    timestamp_list   = []
+    timestamp_list = []
     motion_prob_list = []
-    poi_prob1_list   = []
-    poi_prob2_list   = []
-    sound_prob_list  = []
+    poi_prob1_list = []
+    poi_prob2_list = []
+    sound_prob_list = []
     for senz_tuple in input_data:
         timestamp_list.append(senz_tuple['timestamp'])
         motion_prob_list.append(senz_tuple['motionProb'])
@@ -67,9 +73,9 @@ def BehaviorCollector(input_data):
 
     # Calculate every sensor's type.
     _motion_prob = FirstStrategy(motion_prob_list)
-    _poi_prob1   = FirstStrategy(poi_prob1_list)
-    _poi_prob2   = FirstStrategy(poi_prob2_list)
-    _sound_prob  = FirstStrategy(sound_prob_list)
+    _poi_prob1 = FirstStrategy(poi_prob1_list)
+    _poi_prob2 = FirstStrategy(poi_prob2_list)
+    _sound_prob = FirstStrategy(sound_prob_list)
 
     result = {
         'motionProb': _motion_prob,
@@ -153,7 +159,7 @@ def _collect_probs(cur_prob_list, other_prob_list, k_weight=K_WEIGHT_DEFAULT):
     for key in cur_prob_result:
         cur_prob_result[key] *= (2 * k_weight)
     for key in other_prob_result:
-        other_prob_result[key] *= (2 * (1-k_weight))
+        other_prob_result[key] *= (2 * (1 - k_weight))
 
     prob_list = [cur_prob_result, other_prob_result]
 
@@ -184,7 +190,7 @@ def _check_blank_condition(start, end, my_list, max_blank_num=2):
         return False
 
     for index in xrange(len(my_list) - 1):
-        if abs(my_list[index] - my_list[index+1]) > max_blank_num:
+        if abs(my_list[index] - my_list[index + 1]) > max_blank_num:
             return False
 
     return True
@@ -252,14 +258,21 @@ def refine_senz_prob_list(scale_type, start_scale_value, end_scale_value, senz_p
         scaled_senz_prob_list.append(scaled_senz_prob_dict[sorted_key])
 
     # Step 2: check blank condition
-    if not _check_blank_condition(start_scale_value, end_scale_value, sorted(scaled_senz_prob_dict), max_blank_senz_prob):
-        return []
+    if not _check_blank_condition(start_scale_value, end_scale_value, sorted(scaled_senz_prob_dict),
+                                  max_blank_senz_prob):
+        logger.info(
+            '[refine] input data match blank condition, scale_type=%s, start_scale_value=%s, end_scale_value=%s' %
+            (scale_type, start_scale_value, end_scale_value))
+        raise BlankConditionException(
+            '[refine] input data match black condition, scale_type=%s, start_scale_value=%s, end_scale_value=%s'
+            % (scale_type, start_scale_value, end_scale_value))
 
     # Step 3: calculate per scale combined prob
     combined_prob_list = []
 
     total_prob_dict = {}
-    total_prob_keys = [key for key in scaled_senz_prob_list[0][0].iterkeys() if key not in ['timestamp', 'senzId', 'tenMinScale', 'halfHourScale', 'perHourScale']]
+    total_prob_keys = [key for key in scaled_senz_prob_list[0][0].iterkeys() if
+                       key not in ['timestamp', 'senzId', 'tenMinScale', 'halfHourScale', 'perHourScale']]
     for key in total_prob_keys:
         total_prob_dict[key] = []
     for per_scaled_list in scaled_senz_prob_list:
@@ -297,15 +310,16 @@ def refine_senz_prob_list(scale_type, start_scale_value, end_scale_value, senz_p
         refined_senz_prob_list.append(combined_prob_list[index])
         if index == len(combined_prob_list) - 1:
             break
-        if combined_prob_list[index+1][scale_type] - combined_prob_list[index][scale_type] == max_blank_senz_prob:
+        if combined_prob_list[index + 1][scale_type] - combined_prob_list[index][scale_type] == max_blank_senz_prob:
             refined_senz_prob_list_elem = {
-                'timestamp': (combined_prob_list[index]['timestamp'] + combined_prob_list[index+1]['timestamp']) / 2,
-                #'motionProb': _collect_probs(combined_prob_list[index]['motionProb'], combined_prob_list[index+1]['motionProb'], k_weight=0.5),
+                'timestamp': (combined_prob_list[index]['timestamp'] + combined_prob_list[index + 1]['timestamp']) / 2,
+                # 'motionProb': _collect_probs(combined_prob_list[index]['motionProb'], combined_prob_list[index+1]['motionProb'], k_weight=0.5),
                 scale_type: combined_prob_list[index][scale_type] + 1,
                 'senzId': []
             }
             for key in total_prob_keys:
-                refined_senz_prob_list_elem[key] = _collect_probs(combined_prob_list[index][key], combined_prob_list[index+1][key], k_weight=0.5)
+                refined_senz_prob_list_elem[key] = _collect_probs(combined_prob_list[index][key],
+                                                                  combined_prob_list[index + 1][key], k_weight=0.5)
 
             refined_senz_prob_list.append(refined_senz_prob_list_elem)
 
@@ -340,7 +354,6 @@ def refine_senz_prob_list(scale_type, start_scale_value, end_scale_value, senz_p
         refined_senz_prob_list.append(refined_senz_prob_list_elem)
 
     return refined_senz_prob_list
-
 
 
 if __name__ == '__main__':

@@ -12,6 +12,7 @@ import logging
 from logentries import LogentriesHandler
 import bugsnag
 from bugsnag.flask import handle_exceptions
+from exceptions import BlankConditionException
 
 # Configure Logentries
 logger = logging.getLogger('logentries')
@@ -88,13 +89,11 @@ def behaviorCollectorAPI():
         result['code'] = 0
         result['message'] = 'success'
         logger.info('%s, [API] success!' % (x_request_id))
-        return json.dumps(result)
-    except Exception, e:
-        logger.error('<%s>, [Exception] generate result error: %s' % (x_request_id, str(e)))
+    except BlankConditionException, err:
         result['code'] = 1
-        result['message'] = '500 Internal Error'
-        return json.dumps(result)
+        result['message'] = str(err)
 
+    return json.dumps(result)
 
 if __name__ == '__main__':
     app.debug = True
