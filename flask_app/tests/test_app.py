@@ -113,6 +113,53 @@ class TestBehaviorCollectorAPI(TestCase):
         self.assertEqual(200, rv.status_code)
         result = json.loads(rv.data)
         self.assertEqual(0, result["code"])
-        #print(result['result'])
+        print('input:: %s' %(senz_prob_list))
+        print('output: %s' %(result['result']))
         self.assertEqual(True, result['result'][0].has_key('locationProb'))
         self.assertEqual(True, result['result'][0].has_key('motionProb'))
+
+
+        # case 3
+        scale_type = "perHourScale"
+        senz_prob_list = [
+            {
+                "motionProb": {"unknown": 0.7, "B": 0.3},
+                "locationProb": {"A": 0.7, "B": 0.3},
+                "timestamp": 21921921213,
+                "perHourScale": 23,
+                "senzId": 11
+            },
+            {
+                "motionProb": {"A": 0.3, "C": 0.7},
+                "locationProb": {"A": 0.3, "C": 0.7},
+                "timestamp": 11223333,
+                "perHourScale": 23,
+                "senzId": 12
+            },
+            {
+                "motionProb": {"B": 0.7, "unknown": 0.3},
+                "locationProb": {"B": 0.7, "C": 0.3},
+                "timestamp": 333222,
+                "perHourScale": 0,
+                "senzId": 21
+            },
+            {
+                "motionProb": {"A": 0.7, "C": 0.3},
+                "locationProb": {"A": 0.7, "C": 0.3},
+                "timestamp": 992222,
+                "perHourScale": 2,
+                "senzId": 41
+            },
+        ]
+        data = {
+            "scaleType": scale_type,
+            "startScaleValue": 22,
+            "endScaleValue": 2,
+            "senzList": senz_prob_list,
+        }
+        rv = self.app.post("/", data=json.dumps(data))
+        self.assertEqual(200, rv.status_code)
+        result = json.loads(rv.data)
+        self.assertEqual(0, result["code"])
+        print('[case 3]\ninput: %s' %(senz_prob_list))
+        print('output: %s' %(result['result']))

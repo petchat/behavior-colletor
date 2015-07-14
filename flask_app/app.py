@@ -15,7 +15,14 @@ from bugsnag.flask import handle_exceptions
 
 # Configure Logentries
 logger = logging.getLogger('logentries')
-logger.setLevel(logging.INFO)
+if APP_ENV == 'prod':
+    logger.setLevel(logging.INFO)
+else:
+    logger.setLevel(logging.DEBUG)
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.DEBUG)
+    ch.setFormatter(logging.Formatter('%(asctime)s - %(name)s : %(levelname)s, %(message)s'))
+    logger.addHandler(ch)
 logentries_handler = LogentriesHandler(LOGENTRIES_TOKEN)
 logger.addHandler(logentries_handler)
 

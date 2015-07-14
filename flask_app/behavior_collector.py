@@ -98,17 +98,18 @@ def _get_arithmetic_average(prob_list):
       with string keys and float values
     """
     prob_result = {}
-    prob_length = len(prob_list)
+    total_prob = 0.0
 
     for elem in prob_list:
         for elem_key in elem:
+            total_prob += elem[elem_key]
             if prob_result.has_key(elem_key):
                 prob_result[elem_key] += elem[elem_key]
             else:
                 prob_result[elem_key] = elem[elem_key]
 
     for prob_key in prob_result:
-        prob_result[prob_key] /= prob_length
+        prob_result[prob_key] /= total_prob
 
     return prob_result
 
@@ -141,6 +142,12 @@ def _collect_probs(cur_prob_list, other_prob_list, k_weight=K_WEIGHT_DEFAULT):
 
     cur_prob_result = _get_arithmetic_average(cur_prob_list)
     other_prob_result = _get_arithmetic_average(other_prob_list)
+
+    # handle key `unknown`
+    if cur_prob_result.keys != ['unknown'] and 'unknown' in cur_prob_result:
+        cur_prob_result.pop('unknown')
+    if other_prob_result.keys != ['unknown'] and 'unknown' in other_prob_result:
+        other_prob_result.pop('unknown')
 
     # process with k_weight
     for key in cur_prob_result:
