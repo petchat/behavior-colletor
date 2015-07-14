@@ -2,7 +2,7 @@
 
 __author__ = 'MeoWoodie'
 
-from flask import Flask, request, got_request_exception
+from flask import Flask, request
 from behavior_collector import refine_senz_prob_list
 import json
 import os
@@ -12,7 +12,7 @@ import logging
 from logentries import LogentriesHandler
 import bugsnag
 from bugsnag.flask import handle_exceptions
-from exceptions import BlankConditionException
+from my_exceptions import BlankConditionException
 
 # Configure Logentries
 logger = logging.getLogger('logentries')

@@ -5,7 +5,7 @@ __author__ = ['MeoWoodie', 'jiaying.lu']
 __all__ = ['BehaviorCollector', 'refine_senz_prob_list']
 
 import logging
-from exceptions import BlankConditionException
+from my_exceptions import BlankConditionException
 
 logger = logging.getLogger('logentries')
 
