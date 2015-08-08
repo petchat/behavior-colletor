@@ -6,9 +6,12 @@ __all__ = ['BehaviorCollector', 'refine_senz_prob_list']
 
 
 # configs
-MAX_SCALE_VALUE = {'tenMinScale': 143,
-                   'halfHourScale': 47,
-                   'perHourScale': 23}
+MAX_SCALE_VALUE = {
+    'perMinScale': 1439,
+    'tenMinScale': 143,
+    'halfHourScale': 47,
+    'perHourScale': 23
+}
 K_WEIGHT_DEFAULT = 0.5  # default value for _collect_probs() param k_weight
 
 # def CountStrategy(sensor_type_list):
@@ -252,7 +255,7 @@ def refine_senz_prob_list(scale_type, start_scale_value, end_scale_value, senz_p
     combined_prob_list = []
 
     total_prob_dict = {}
-    total_prob_keys = [key for key in scaled_senz_prob_list[0][0].iterkeys() if key not in ['timestamp', 'senzId', 'tenMinScale', 'halfHourScale', 'perHourScale']]
+    total_prob_keys = [key for key in scaled_senz_prob_list[0][0].iterkeys() if key not in ['timestamp', 'senzId', 'tenMinScale', 'halfHourScale', 'perHourScale', 'perMinScale']]
     for key in total_prob_keys:
         total_prob_dict[key] = []
     for per_scaled_list in scaled_senz_prob_list:
